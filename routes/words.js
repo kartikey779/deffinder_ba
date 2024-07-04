@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const cors = require("cors");
+const compression = require('compression');
 
 
 
+router.use(compression());
 router.use(express.json());
 router.use(cors());
 
@@ -57,63 +59,55 @@ router.post("/",  async (req, resp) => {
     }
 });
 
+router.get('/subjects/uniqueSubjects', async (req, res) => {
+    try {
+      const uniqueSubjects = await Words.distinct('subject');
+      res.json(uniqueSubjects);
+    } catch (error) {
+      console.error('Error fetching unique subjects:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
 
-//fetching data from database
 
-//computer science get api
-router.get("/computerscience", async (req, resp) =>{
-    try{
-        const words = await Words.find({ subject: "Computer science"});
+
+router.get("/subjects/:subject", async (req, resp) => {
+    const requestedSubject = req.params.subject;
+
+    try {
+        const words = await Words.find({ subject: requestedSubject }).limit(24);
+
         resp.json(words);
-    } catch (e){
+    } catch (e) {
         console.error(e);
         resp.status(500).send("Something went wrong");
     }
 });
 
-//Economics get api
 
-router.get("/economics", async (req, resp) =>{
-    try{
-        const words = await Words.find({ subject: "Economics"});
-        resp.json(words);
-    } catch (e){
-        console.error(e);
-        resp.status(500).send("Something went wrong");
-    }
-});
-
-// music get api 
-
-router.get("/music", async (req, resp) =>{
-    try{
-        const words = await Words.find({ subject: "Music"});
-        resp.json(words);
-    } catch (e){
-        console.error(e);
-        resp.status(500).send("Something went wrong");
-    }
-});
 
 // a_alphabet api
-router.get("/alphabet", async (req, resp) =>{
-    try{
-        let searchQuery = req.query.search || "Gang";
-        const words = await Words.find({ "word": {"$regex": "^"+ searchQuery,"$options": 'i'} } );
+router.get("/alphabet", async (req, res) => {
+    try {
+        const searchQuery = req.query.search || "Gang";
+        
+        // Use the 'i' option for case-insensitive matching
+        const regex = new RegExp("^" + searchQuery, "i");
 
-       
-        resp.json(words);
-    } catch (e){
-        console.error(e);
-        resp.status(500).send("Something went wrong");
+        // You can use projection to select specific fields if needed
+        const words = await Words.find({ "word": { "$regex": regex } }).limit(24);
+
+        res.json(words);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Something went wrong");
     }
 });
-
 
 async function connectToDatabase() {
     try {
-      await mongoose.connect('mongodb://localhost:27017/DesiredWord');
+       await mongoose.connect("mongodb+srv://deffinder:pyB10mCQbpgGz4Qv@cluster0.ewpqtiz.mongodb.net/?retryWrites=true&w=majority");
       console.log('Connected to the DesiredWord database');
     } catch (err) {
       console.error('Error connecting to the database:', err);

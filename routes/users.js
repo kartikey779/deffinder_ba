@@ -7,7 +7,6 @@ router.use(express.json());
 router.use(cors());
 
 
-// mongoose.connect("mongodb://localhost:27017/employee");
 const EmployeeSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -32,11 +31,11 @@ router.post('/', (req, res) => {
 });
 
 router.post("/login", (req, res) =>{
-    const {email, password} = req.body;
-    EmployeeModel.findOne({email: email})
+    const {emailLogin, passwordLogin} = req.body;
+    EmployeeModel.findOne({email: emailLogin})
     .then(user => {
         if(user){
-            if(user.password === password){
+            if(user.password === passwordLogin){
                 res.send("Success");
             }else{
                 res.json("the password is incorrect");
